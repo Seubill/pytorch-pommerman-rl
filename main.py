@@ -206,7 +206,7 @@ def main():
                 res = total_num_steps / val
                 floored = total_num_steps // val
                 if floored > previous: 
-                    previous == floored
+                    previous = floored
                     # Save the model
                     torch.save(save_model, os.path.join(save_path, args.env_name + "-" + str(res) + "M.pt"))
             """
