@@ -201,7 +201,7 @@ def main():
             """
             # Interval I want to save model at
             val = 1000000
-            if total_num_steps > 80 and args.save_models_intervals is True:
+            if total_num_steps > 80 and args.save_model_intervals is True:
                 i = total_num_steps % val
                 res = total_num_steps / val
                 floored = total_num_steps // val
