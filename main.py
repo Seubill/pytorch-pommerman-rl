@@ -8,6 +8,8 @@ from collections import deque
 import numpy as np
 import torch
 
+from torch.utils.tensorboard import SummaryWriter
+
 import algo
 from arguments import get_args
 from envs import make_vec_envs
@@ -15,6 +17,8 @@ from models import create_policy
 from rollout_storage import RolloutStorage
 from replay_storage import ReplayStorage
 from visualize import visdom_plot
+
+writer = SummaryWriter()
 
 args = get_args()
 
@@ -208,6 +212,9 @@ def main():
                        np.min(episode_rewards),
                        np.max(episode_rewards), dist_entropy,
                        value_loss, action_loss), end=', ' if other_metrics else '\n')
+            writer.add_scalar("updates", j, total_num_steps)
+            writer.add_scalar("mean_reward", np.mean(episode_rewards), total_num_steps)
+            writer.add_scalar("j vs value_loss", total_num_steps, value_loss)
             if 'sil_value_loss' in other_metrics:
                 print("SIL value/action loss {:.1f}/{:.1f}.".format(
                     other_metrics['sil_value_loss'],
