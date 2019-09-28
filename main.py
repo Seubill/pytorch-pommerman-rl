@@ -141,7 +141,7 @@ def main():
     rollouts.to(device)
 
     episode_rewards = deque(maxlen=10)
-    
+    previous = 0
     start = time.time()
     for j in range(num_updates):
         for step in range(args.num_steps):
@@ -181,6 +181,8 @@ def main():
 
         rollouts.after_update()
 
+        total_num_steps = (j + 1) * update_factor
+        
         if j % args.save_interval == 0 and args.save_dir != "":
             save_path = os.path.join(args.save_dir, args.algo)
             try:
@@ -195,10 +197,44 @@ def main():
 
             save_model = [save_model.state_dict(),
                             hasattr(train_envs.venv, 'ob_rms') and train_envs.venv.ob_rms or None]
-
+            
+            """
+            Jameson Edit Start
+            Goal is to add a function in addition to where it normally saves, this assumes save interval will be 1000 (default)
+            Additionally it will save the model every 1 million timesteps
+            """
+            # Interval I want to save model at
+            val = 1000000
+            if total_num_steps > 80 and args.save_model_intervals is True:
+                i = total_num_steps % val
+                res = total_num_steps / val
+                floored = total_num_steps // val
+                if floored > previous: 
+                    previous = floored
+                    # Save the model
+                    torch.save(save_model, os.path.join(save_path, args.env_name + "-" + str(res) + "M.pt"))
+            """
+            Jameson Edit End
+            """
+            # Final Model for when you quit training
             torch.save(save_model, os.path.join(save_path, args.env_name + ".pt"))
 
-        total_num_steps = (j + 1) * update_factor
+
+        # increment = 880
+        # # What I want to save model interval
+        # val = 10000
+        # # Save Interval
+        # tmp = 100
+        # # Every 100 Updates do this
+        # if total_num_steps > 80 and j % tmp == 0 and args.save_model_intervals is True:
+        #     i = total_num_steps % val
+        #     res = total_num_steps / val
+        #     floored = total_num_steps // val
+        #     if floored > previous:
+        #         previous = floored
+
+        #     print(j, i, res, floored, previous)
+        #     # torch.save(save_model, os.path.join(save_path, args.env_name + "-" + str(i) + "M.pt"))
 
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()

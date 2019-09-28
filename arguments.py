@@ -2,6 +2,11 @@ import argparse
 
 import torch
 
+def str2bool(v):
+    if isinstance(v, bool): return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'): return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'): return False
+    else: raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def get_args():
     parser = argparse.ArgumentParser(description='RL')
@@ -79,6 +84,8 @@ def get_args():
                         help='port to run the server on (default: 8097)')
     parser.add_argument('--no-norm', action='store_true', default=False,
                         help='disables normalization')
+    parser.add_argument('--save-model-intervals', type=str2bool, nargs='?', const=True, default=False,
+                        help='activate saving model every 1M intervals')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()
