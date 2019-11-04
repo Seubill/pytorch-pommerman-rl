@@ -17,13 +17,8 @@ cd pytorch-pommerman-rl
 conda activate pommerman
 conda env update --file env.yml  --prune
 
-# run visdom server from facebookresearch(open another terminal)
-visdom
-
-# open http://localhost:8097
-
 # run the training command
-python main.py --use-gae --env-name PommeFFACompetitionFast-v0 --no-norm --seed 42 --algo a2c --lr-schedule 25000000
+python main.py --use-gae --env-name PommeFFACompetitionFast-v0 --no-norm --seed 42 --algo a2c --lr-schedule 25000000 --no-vis
 
 ```
 ## Usage
