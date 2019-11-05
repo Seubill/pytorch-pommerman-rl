@@ -651,11 +651,13 @@ class ForwardModel(object):
                         index = i
                 if bombs:
                     for bomb in bombs:
-                        if bomb.bomber.agent_id == trainableAgent.agent_id:
-                        rewards += 1.5
+                        # 0.005 was good with scaling
+                        if bomb.bomber.agent_id == trainableAgent.agent_id: rewards += 0.025 * bomb.life
+                        
                 tmp = [int(agent.is_alive) - 1 for agent in agents]
                 tmp[index] += rewards
                 return tmp
+                # return [int(agent.is_alive) - 1 for agent in agents]
                 
 
         elif game_type == constants.GameType.OneVsOne:
