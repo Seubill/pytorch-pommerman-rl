@@ -248,6 +248,7 @@ def main():
                        np.min(episode_rewards),
                        np.max(episode_rewards), dist_entropy,
                        value_loss, action_loss), end=', ' if other_metrics else '\n')
+            writer.add_scalar("max_rewards", np.max(episode_rewards), total_num_steps)
             writer.add_scalar("updates", j, total_num_steps)
             writer.add_scalar("mean_reward", np.mean(episode_rewards), total_num_steps)
             writer.add_scalar("j vs value_loss", total_num_steps, value_loss)
