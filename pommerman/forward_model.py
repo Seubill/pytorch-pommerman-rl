@@ -626,12 +626,35 @@ class ForwardModel(object):
                 'result': constants.Result.Incomplete,
             }
 
+     
+
     @staticmethod
     def get_rewards(agents, game_type, step_count, max_steps, bombs=None):
 
         def any_lst_equal(lst, values):
             '''Checks if list are equal'''
             return any([lst == v for v in values])
+        def get_dangerzone(bomb_position):
+            # Need to check if out of gameBoard
+            # POwer ups
+            n_1 = (bomb_position[0], bomb_position[1] + 1)
+            n_2 = (bomb_position[0], bomb_position[1] + 2)
+            s_1 = (bomb_position[0], bomb_position[1] - 1)
+            s_2 = (bomb_position[0], bomb_position[1] - 2)
+            w_1 = (bomb_position[0] - 1, bomb_position[1])
+            w_2 = (bomb_position[0] - 2, bomb_position[1])
+            e_1 = (bomb_position[0] + 1, bomb_position[1])
+            e_2 = (bomb_position[0] + 2, bomb_position[1])
+            positions = [bomb_position, n_1, n_2, s_1, s_2, w_1, w_2, e_1, e_2]
+            for position in positions:
+                # < 0 or > 10 (being edges of board, remove them)
+                if position[0] < 0 or position[1] < 0 or position[0] > 10 or position[1] > 10: positions.remove(position)
+            return positions
+
+        def safety_check(danger_zone, agent_position):
+            for pos in danger_zone:
+                if agent_position == pos: return False
+            return True
 
         alive_agents = [num for num, agent in enumerate(agents) \
                         if agent.is_alive]
@@ -643,16 +666,22 @@ class ForwardModel(object):
             else:
                 # Game running: 0 for alive, -1 for dead.
                 rewards, index = 0,0
-                trainableAgent = agents[0]
-                # for agent in agents:
+                trainable_agent = agents[0]
                 for i in range(len(agents)):
                     if agents[i].__class__.__name__ == "TrainingAgent": 
-                        trainableAgent = agents[i]
+                        trainable_agent = agents[i]
                         index = i
                 if bombs:
                     for bomb in bombs:
+                        neg_positions = get_dangerzone(bomb.position)
+                        if safety_check(neg_positions, trainable_agent.position): 
+                            x_dist = abs(trainable_agent.position[0] - bomb.position[0])
+                            y_dist = abs(trainable_agent.position[1] - bomb.position[1])
+                            if x_dist < 4 and y_dist < 4: rewards += 1/ (x_dist + y_dist)
+                        else: rewards -= 0.015
                         # 0.005 was good with scaling
-                        if bomb.bomber.agent_id == trainableAgent.agent_id: rewards += 0.025 * bomb.life
+                        if bomb.bomber.agent_id == trainable_agent.agent_id: 
+                            rewards += 0.025 * bomb.life
                         
                 tmp = [int(agent.is_alive) - 1 for agent in agents]
                 tmp[index] += rewards
