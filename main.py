@@ -204,7 +204,7 @@ def main():
             Additionally it will save the model every 1 million timesteps
             """
             # Interval I want to save model at
-            val = 1000000
+            val = 100000
             if total_num_steps > 80 and args.save_model_intervals is True:
                 i = total_num_steps % val
                 res = total_num_steps / val
@@ -220,22 +220,7 @@ def main():
             torch.save(save_model, os.path.join(save_path, args.env_name + ".pt"))
 
 
-        # increment = 880
-        # # What I want to save model interval
-        # val = 10000
-        # # Save Interval
-        # tmp = 100
-        # # Every 100 Updates do this
-        # if total_num_steps > 80 and j % tmp == 0 and args.save_model_intervals is True:
-        #     i = total_num_steps % val
-        #     res = total_num_steps / val
-        #     floored = total_num_steps // val
-        #     if floored > previous:
-        #         previous = floored
-
-        #     print(j, i, res, floored, previous)
-        #     # torch.save(save_model, os.path.join(save_path, args.env_name + "-" + str(i) + "M.pt"))
-
+    
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()
             print("Updates {}, num timesteps {}, FPS {}, last {} mean/median reward {:.1f}/{:.1f}, "
@@ -248,9 +233,10 @@ def main():
                        np.min(episode_rewards),
                        np.max(episode_rewards), dist_entropy,
                        value_loss, action_loss), end=', ' if other_metrics else '\n')
-            writer.add_scalar("max_rewards", np.max(episode_rewards), total_num_steps)
-            writer.add_scalar("updates", j, total_num_steps)
-            writer.add_scalar("mean_reward", np.mean(episode_rewards), total_num_steps)
+            writer.add_scalar("Rewards/max_rewards", np.max(episode_rewards), total_num_steps)
+            writer.add_scalar("Rewards/min_rewards", np.min(episode_rewards), total_num_steps)
+            writer.add_scalar("Rewards/median_rewards", np.median(episode_rewards), total_num_steps)
+            writer.add_scalar("Rewards/mean_rewards", np.mean(episode_rewards), total_num_steps)
             writer.add_scalar("j vs value_loss", total_num_steps, value_loss)
             if 'sil_value_loss' in other_metrics:
                 print("SIL value/action loss {:.1f}/{:.1f}.".format(

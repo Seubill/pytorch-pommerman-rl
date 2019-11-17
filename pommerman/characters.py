@@ -138,7 +138,7 @@ class Bomb(object):
         row, col = self.position
         indices = {
             'up': ([row - i, col] for i in range(1, self.blast_strength)),
-            'down': ([row + i, col] for i in range(self.blast_strength)),
+            'down': ([row + i, col] for i in range( self.blast_strength)),
             'left': ([row, col - i] for i in range(1, self.blast_strength)),
             'right': ([row, col + i] for i in range(1, self.blast_strength))
         }
