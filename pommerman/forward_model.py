@@ -641,10 +641,10 @@ class ForwardModel(object):
             positions = [bomb.position]
             for i in range(1, bomb.blast_strength + 1):
 
-                n = (bomb_position[0], bomb_position[1] + i)
-                s = (bomb_position[0], bomb_position[1] - i)
-                w = (bomb_position[0] - i, bomb_position[1])
-                e = (bomb_position[0] + i, bomb_position[1])
+                n = (bomb.position[0], bomb.position[1] + i)
+                s = (bomb.position[0], bomb.position[1] - i)
+                w = (bomb.position[0] - i, bomb.position[1])
+                e = (bomb.position[0] + i, bomb.position[1])
                 positions.append(n)
                 positions.append(s)
                 positions.append(w)
