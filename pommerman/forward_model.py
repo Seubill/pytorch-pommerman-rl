@@ -449,7 +449,12 @@ class ForwardModel(object):
 
                 bomb.bomber.incr_ammo()
                 for _, indices in bomb.explode().items():
+                    first_inner_loop = True
                     for r, c in indices:
+                        if first_inner_loop:
+                            r1 = r
+                            c1 = c
+                            first_inner_loop = False
                         if not all(
                             [r >= 0, c >= 0, r < board_size, c < board_size]):
                             break
@@ -457,6 +462,7 @@ class ForwardModel(object):
                             break
                         exploded_map[r][c] = 1
                         if curr_board[r][c] == constants.Item.Wood.value:
+                            bomb.reward = 0.1 / (abs(r - r1) + abs(c - c1) + 1)
                             break
 
             curr_bombs = next_bombs
@@ -685,8 +691,8 @@ class ForwardModel(object):
                         else: rewards -= 0.015
                         # 0.005 was good with scaling
                         if bomb.bomber.agent_id == trainable_agent.agent_id: 
-                            rewards += 0.0025 * bomb.life
-                        
+                            rewards += 0.0025 * bomb.life + bomb.reward
+
                 tmp = [int(agent.is_alive) - 1 for agent in agents]
                 tmp[index] += rewards
                 return tmp

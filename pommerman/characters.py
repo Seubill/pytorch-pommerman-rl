@@ -109,7 +109,9 @@ class Bomb(object):
                  position,
                  life,
                  blast_strength,
-                 moving_direction=None):
+                 moving_direction=None,
+                 reward=0):
+        self.reward = reward
         self.bomber = bomber
         self.position = position
         self.life = life
