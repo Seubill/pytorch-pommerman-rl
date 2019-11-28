@@ -53,6 +53,7 @@ def ffa_competition_env():
         'render_fps': constants.RENDER_FPS,
         'env': env_entry_point,
     }
+    # print(env_kwargs['num_wood'])
     agent = characters.Bomber
     return locals()
 

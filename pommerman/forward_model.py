@@ -438,6 +438,10 @@ class ForwardModel(object):
                 bomb.fire()
                 has_new_explosions = True
 
+        agent_positions = []
+        for num_agent, agent in enumerate(alive_agents):
+            agent_positions.append(agent.position)
+
         # Chain the explosions.
         while has_new_explosions:
             next_bombs = []
@@ -448,6 +452,7 @@ class ForwardModel(object):
                     continue
 
                 bomb.bomber.incr_ammo()
+                pos = bomb.position
                 for _, indices in bomb.explode().items():
                     for r, c in indices:
                         if not all(
@@ -456,7 +461,12 @@ class ForwardModel(object):
                         if curr_board[r][c] == constants.Item.Rigid.value:
                             break
                         exploded_map[r][c] = 1
+
+                        if (r,c) in agent_positions:
+                            bomb.reward += 0.75 / (abs(r - pos[0]) + abs(c - pos[1]) + 1)
+
                         if curr_board[r][c] == constants.Item.Wood.value:
+                            bomb.reward += 0.75 / (abs(r - pos[0]) + abs(c - pos[1]) + 1)
                             break
 
             curr_bombs = next_bombs
@@ -634,26 +644,30 @@ class ForwardModel(object):
         def any_lst_equal(lst, values):
             '''Checks if list are equal'''
             return any([lst == v for v in values])
-        def get_dangerzone(bomb):
+
+        def get_dangerzone(bombs):
             # Need to check if out of gameBoard
-            # POwer ups
-
-            positions = [bomb.position]
-            for i in range(1, bomb.blast_strength + 1):
-
-                n = (bomb.position[0], bomb.position[1] + i)
-                s = (bomb.position[0], bomb.position[1] - i)
-                w = (bomb.position[0] - i, bomb.position[1])
-                e = (bomb.position[0] + i, bomb.position[1])
-                positions.append(n)
-                positions.append(s)
-                positions.append(w)
-                positions.append(e)
-
-            for position in positions:
-                # < 0 or > 10 (being edges of board, remove them)
-                if position[0] < 0 or position[1] < 0 or position[0] > 10 or position[1] > 10: positions.remove(position)
-            return positions
+            danger_positions = []
+            for bomb in bombs:
+                # Pwer ups
+                positions = [bomb.position]
+                for i in range(1, bomb.blast_strength):
+                    n = (bomb.position[0], bomb.position[1] + i)
+                    s = (bomb.position[0], bomb.position[1] - i)
+                    w = (bomb.position[0] - i, bomb.position[1])
+                    e = (bomb.position[0] + i, bomb.position[1])
+                    positions.append(n)
+                    positions.append(s)
+                    positions.append(w)
+                    positions.append(e)
+                for position in positions:
+                    # < 0 or > 10 (being edges of board, remove them)
+                    if position[0] < 0 or position[1] < 0 or position[0] > 10 or position[1] > 10: positions.remove(position)
+                first_list = set(danger_positions)
+                second_list = set(positions)
+                dif = first_list - second_list
+                danger_positions += list(dif)
+            return danger_positions
 
         def safety_check(danger_zone, agent_position):
             for pos in danger_zone:
@@ -676,16 +690,25 @@ class ForwardModel(object):
                         trainable_agent = agents[i]
                         index = i
                 if bombs:
+                    neg_positions = get_dangerzone(bombs)
+                    if safety_check(neg_positions, trainable_agent.position): rewards += 0.025
+                    else: rewards -= 0.025
                     for bomb in bombs:
-                        neg_positions = get_dangerzone(bomb)
-                        if safety_check(neg_positions, trainable_agent.position): 
-                            x_dist = abs(trainable_agent.position[0] - bomb.position[0])
-                            y_dist = abs(trainable_agent.position[1] - bomb.position[1])
-                            if x_dist < 4 and y_dist < 4: rewards += 1/ (x_dist + y_dist)
-                        else: rewards -= 0.015
-                        # 0.005 was good with scaling
                         if bomb.bomber.agent_id == trainable_agent.agent_id: 
-                            rewards += 0.0025 * bomb.life
+                            rewards += 0.025 * bomb.reward 
+                       
+                        # for bomb in bombs:
+                        #     neg_positions = get_dangerzone(bomb)
+                        #     if safety_check(neg_positions, trainable_agent.position): 
+                        #         x_dist = abs(trainable_agent.position[0] - bomb.position[0])
+                        #         y_dist = abs(trainable_agent.position[1] - bomb.position[1])
+                        #         # if x_dist < 4 and y_dist < 4: rewards += 1/ (x_dist + y_dist)
+                        #         limiter = bomb.blast_strength + 1
+                        #         if x_dist < limiter and y_dist < limiter: rewards += (x_dist + y_dist) / ((2 * bomb.blast_strength) + 1)
+                        #     else: rewards -= 0.025
+                        #     # 0.005 was good with scaling
+                        #     if bomb.bomber.agent_id == trainable_agent.agent_id and bomb.life == 9: 
+                        #         rewards += 0.0025 * bomb.life
                         
                 tmp = [int(agent.is_alive) - 1 for agent in agents]
                 tmp[index] += rewards
@@ -720,4 +743,3 @@ class ForwardModel(object):
             else:
                 # No team has yet won or lost.
                 return [0] * 4
-
