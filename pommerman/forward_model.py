@@ -694,8 +694,9 @@ class ForwardModel(object):
                     if safety_check(neg_positions, trainable_agent.position): rewards += 0.025
                     else: rewards -= 0.025
                     for bomb in bombs:
-                        if bomb.bomber.agent_id == trainable_agent.agent_id: 
-                            rewards += 0.025 * bomb.reward 
+                        if bomb.bomber.agent_id == trainable_agent.agent_id and bomb.life == 1:
+                            print("made it")
+                            rewards += 0.025 * bomb.reward
                        
                         # for bomb in bombs:
                         #     neg_positions = get_dangerzone(bomb)
