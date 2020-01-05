@@ -107,7 +107,8 @@ def main():
             args.value_loss_coef, args.entropy_coef,
             lr=args.lr, lr_schedule=lr_update_schedule,
             eps=args.eps,
-            max_grad_norm=args.max_grad_norm)
+            max_grad_norm=args.max_grad_norm,
+            use_clipped_value_loss= True)
     elif args.algo == 'acktr':
         agent = algo.A2C_ACKTR(
             actor_critic, args.value_loss_coef,
