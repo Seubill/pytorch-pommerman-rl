@@ -37,22 +37,26 @@ if args.cuda:
 np.random.seed(args.seed)
 
 try:
-    os.makedirs(args.log_dir)
+    os.makedirs(args.log_dir, exist_ok=True)
 except OSError:
+    print("first_except")
     files = glob.glob(os.path.join(args.log_dir, '*.monitor.csv'))
     for f in files:
         os.remove(f)
 
 eval_log_dir = args.log_dir + "_eval"
 try:
-    os.makedirs(eval_log_dir)
+    os.makedirs(eval_log_dir, exist_ok = True)
 except OSError:
+    print("second_except")
     files = glob.glob(os.path.join(eval_log_dir, '*.monitor.csv'))
     for f in files:
         os.remove(f)
 
 
 def main():
+    # For windows you might need to make sure you have cuda installed
+    # conda install pytorch torchvision cudatoolkit = 10.1 -c pytorch
     torch.set_num_threads(1)
     device = torch.device("cuda:0" if args.cuda else "cpu")
 
@@ -182,7 +186,7 @@ def main():
         rollouts.after_update()
 
         total_num_steps = (j + 1) * update_factor
-        
+
         if j % args.save_interval == 0 and args.save_dir != "":
             save_path = os.path.join(args.save_dir, args.algo)
             try:
@@ -197,7 +201,7 @@ def main():
 
             save_model = [save_model.state_dict(),
                             hasattr(train_envs.venv, 'ob_rms') and train_envs.venv.ob_rms or None]
-            
+
             """
             Jameson Edit Start
             Goal is to add a function in addition to where it normally saves, this assumes save interval will be 1000 (default)
@@ -209,7 +213,7 @@ def main():
                 i = total_num_steps % val
                 res = total_num_steps / val
                 floored = total_num_steps // val
-                if floored > previous: 
+                if floored > previous:
                     previous = floored
                     # Save the model
                     torch.save(save_model, os.path.join(save_path, args.env_name + "-" + str(res) + "M.pt"))
@@ -219,8 +223,6 @@ def main():
             # Final Model for when you quit training
             torch.save(save_model, os.path.join(save_path, args.env_name + ".pt"))
 
-
-    
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()
             print("Updates {}, num timesteps {}, FPS {}, last {} mean/median reward {:.1f}/{:.1f}, "
