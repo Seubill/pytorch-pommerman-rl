@@ -29,8 +29,8 @@ def get_args():
                         help='max norm of gradients (default: 0.5)')
     parser.add_argument('--seed', type=int, default=1,
                         help='random seed (default: 1)')
-    parser.add_argument('--num-processes', type=int, default=16,
-                        help='how many training CPU processes to use (default: 16)')
+    parser.add_argument('--num-processes', type=int, default=12,
+                        help='how many training CPU processes to use (default: 12)')
     parser.add_argument('--num-steps', type=int, default=5,
                         help='number of forward steps in A2C (default: 5)')
     parser.add_argument('--ppo-epoch', type=int, default=4,
@@ -79,6 +79,8 @@ def get_args():
                         help='port to run the server on (default: 8097)')
     parser.add_argument('--no-norm', action='store_true', default=False,
                         help='disables normalization')
+    parser.add_argument('--load-path', default='',
+                        help='path to checkpoint file')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

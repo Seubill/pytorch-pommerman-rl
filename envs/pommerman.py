@@ -5,6 +5,8 @@ import numpy as np
 import gym
 import random
 
+from agents import HoldAgent
+
 DEFAULT_FEATURE_CONFIG = {
     'recode_agents': True,
     'compact_powerups': True,
@@ -197,13 +199,15 @@ def _ffa_partial_fast_env():
     env_kwargs = {
         'game_type': game_type,
         'board_size': pommerman.constants.BOARD_SIZE,
-        'num_rigid': pommerman.constants.NUM_RIGID,
-        'num_wood': pommerman.constants.NUM_WOOD,
-        'num_items': pommerman.constants.NUM_ITEMS,
+        'num_rigid': 0,
+        # 'num_wood': pommerman.constants.NUM_WOOD,
+        'num_wood': 0,
+        # 'num_items': pommerman.constants.NUM_ITEMS,
+        'num_items': 0,
         'max_steps': pommerman.constants.MAX_STEPS,
         'render_fps': 1000,
         'agent_view_size': pommerman.constants.AGENT_VIEW_SIZE,
-        'is_partially_observable': True,
+        'is_partially_observable': False,
         'env': env_entry_point,
     }
     agent = pommerman.characters.Bomber
@@ -214,9 +218,9 @@ def make_env(config):
     training_agent = TrainingAgent()
     agent_list = [
         training_agent,
-        pommerman.agents.SimpleAgent(),
-        pommerman.agents.SimpleAgent(),
-        pommerman.agents.SimpleAgent(),
+        HoldAgent(),
+        HoldAgent(),
+        HoldAgent(),
     ]
     if config == "PommeFFAPartialFast-v0":
         env_spec = _ffa_partial_fast_env()

@@ -2,6 +2,8 @@ import argparse
 import os
 import types
 
+from time import sleep
+
 import numpy as np
 import torch
 from helpers.vec_env.vec_normalize import VecNormalize
@@ -91,11 +93,19 @@ if args.env_name.find('Bullet') > -1:
             torsoId = i
 
 while True:
+    fps = 10
+    sleep_time = 1/fps
+
     with torch.no_grad():
         value, action, _, recurrent_hidden_states = actor_critic.act(
             obs, recurrent_hidden_states, masks, deterministic=True)
 
     obs, reward, done, _ = env.step(action)
+
+    if not done:
+        sleep(sleep_time)
+    else:
+        sleep(3)
 
     masks = torch.tensor([[0.0] if done_ else [1.0] for done_ in done]).to(device)
 

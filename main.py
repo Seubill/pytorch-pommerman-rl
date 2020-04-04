@@ -26,6 +26,9 @@ if args.recurrent_policy:
 update_factor = args.num_steps * args.num_processes
 num_updates = int(args.num_frames) // update_factor
 lr_update_schedule = None if args.lr_schedule is None else args.lr_schedule // update_factor
+# We need to use the same statistics for normalization as used in training
+if args.load_path != '':
+    state_dict, ob_rms = torch.load(args.load_path)
 
 torch.manual_seed(args.seed)
 if args.cuda:
@@ -84,6 +87,8 @@ def main():
         },
         train=True)
 
+    if args.load_path != '':
+        actor_critic.load_state_dict(state_dict)
     actor_critic.to(device)
 
     if args.algo.startswith('a2c'):
