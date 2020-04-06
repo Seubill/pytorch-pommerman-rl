@@ -14,7 +14,6 @@ from envs import make_vec_envs
 from models import create_policy
 from rollout_storage import RolloutStorage
 from replay_storage import ReplayStorage
-from visualize import visdom_plot
 
 args = get_args()
 
@@ -56,9 +55,15 @@ def main():
     device = torch.device("cuda:0" if args.cuda else "cpu")
 
     if args.vis:
-        from visdom import Visdom
-        viz = Visdom(port=args.port)
-        win = None
+        from torch.utils.tensorboard import SummaryWriter
+
+        save_path = os.path.join(args.save_dir, args.algo)
+        try:
+            os.makedirs(save_path)
+        except OSError:
+            pass
+
+        viz = SummaryWriter(os.path.join(save_path, args.env_name + time.strftime("_%d_%b_%H_%M", time.localtime())))
 
     train_envs = make_vec_envs(
         args.env_name, args.seed, args.num_processes, args.gamma, args.no_norm, args.num_stack,
@@ -204,7 +209,7 @@ def main():
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()
             print("Updates {}, num timesteps {}, FPS {}, last {} mean/median reward {:.1f}/{:.1f}, "
-                  "min / max reward {:.1f}/{:.1f}, value/action loss {:.5f}/{:.5f}".
+                  "min / max reward {:.1f}/{:.1f}, dist_entropy{:.5f} value/action loss {:.5f}/{:.5f}".
                 format(j, total_num_steps,
                        int(total_num_steps / (end - start)),
                        len(episode_rewards),
@@ -218,6 +223,15 @@ def main():
                     other_metrics['sil_value_loss'],
                     other_metrics['sil_action_loss']
                 ))
+
+            if args.vis:
+                viz.add_scalar('episode_rewards/mean', np.mean(episode_rewards), total_num_steps)
+                viz.add_scalar('episode_rewards/median', np.median(episode_rewards), total_num_steps)
+                viz.add_scalar('episode_rewards/min', np.min(episode_rewards), total_num_steps)
+                viz.add_scalar('episode_rewards/max', np.max(episode_rewards), total_num_steps)
+                viz.add_scalar('train/value_loss', value_loss, total_num_steps)
+                viz.add_scalar('train/action_loss', action_loss, total_num_steps)
+                viz.add_scalar('train/dist_entropy', dist_entropy, total_num_steps)
 
         if args.eval_interval and len(episode_rewards) > 1 and j > 0 and j % args.eval_interval == 0:
             eval_episode_rewards = []
@@ -241,14 +255,6 @@ def main():
 
             print(" Evaluation using {} episodes: mean reward {:.5f}\n".
                 format(len(eval_episode_rewards), np.mean(eval_episode_rewards)))
-
-        if args.vis and j % args.vis_interval == 0:
-            try:
-                # Sometimes monitor doesn't properly flush the outputs
-                win = visdom_plot(viz, win, args.log_dir, args.env_name,
-                                  args.algo, args.num_frames)
-            except IOError:
-                pass
 
 
 if __name__ == "__main__":

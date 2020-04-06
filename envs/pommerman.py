@@ -201,7 +201,7 @@ def _ffa_partial_fast_env():
         'board_size': pommerman.constants.BOARD_SIZE,
         'num_rigid': 0,
         # 'num_wood': pommerman.constants.NUM_WOOD,
-        'num_wood': 0,
+        'num_wood': 36,
         # 'num_items': pommerman.constants.NUM_ITEMS,
         'num_items': 0,
         'max_steps': pommerman.constants.MAX_STEPS,
@@ -216,11 +216,18 @@ def _ffa_partial_fast_env():
 
 def make_env(config):
     training_agent = TrainingAgent()
+    # agent_list = [
+    #     training_agent,
+    #     HoldAgent(),
+    #     HoldAgent(),
+    #     HoldAgent(),
+    # ]
+
     agent_list = [
         training_agent,
-        HoldAgent(),
-        HoldAgent(),
-        HoldAgent(),
+        pommerman.agents.SimpleAgent(),
+        pommerman.agents.SimpleAgent(),
+        pommerman.agents.SimpleAgent(),
     ]
     if config == "PommeFFAPartialFast-v0":
         env_spec = _ffa_partial_fast_env()
